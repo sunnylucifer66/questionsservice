@@ -23,7 +23,6 @@ def send_request(register=False, login=False, generate_advice=False):
                 "query": "Чат привет, расскажи мне анекдот)"}
 
     payload = data
-
     response = requests.post(url, headers=headers, data=json.dumps(payload))
 
     print(f"Status Code: {response.status_code}")

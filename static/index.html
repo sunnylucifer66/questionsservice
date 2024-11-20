@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuestionService</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button, textarea {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>QuestionsService</h1>
+
+    <!-- Регистрация -->
+    <form id="register-form" class="hidden">
+        <h2>Register</h2>
+        <input type="email" id="register-email" placeholder="Email" required />
+        <input type="password" id="register-password" placeholder="Password" required />
+        <input type="text" id="register-name" placeholder="Name" required />
+        <input type="number" id="register-age" placeholder="Age" required />
+        <input type="text" id="register-interests" placeholder="Interests" required />
+        <input type="text" id="register-goals" placeholder="Goals" required />
+        <button type="submit">Регистрация</button>
+        <button type="button" id="go-to-back">Назад</button>
+    </form>
+
+
+    <!-- Авторизация -->
+    <form id="login-form" class="hidden">
+        <h2>Войти</h2>
+        <input type="email" id="login-email" placeholder="Email" required />
+        <input type="password" id="login-password" placeholder="Password" required />
+        <button type="submit">Войти</button>
+        <br>
+        <!-- Ссылка на страницу регистрации -->
+        <button type="button" id="go-to-register">Нет аккаунта? Создайте!</button>
+    </form>
+
+    <!-- Поле для вопроса -->
+    <form id="advice-form" class="hidden">
+        <h2>Задайте вопрос</h2>
+        <textarea id="query" placeholder="Введите вопрос" required></textarea>
+        <button type="submit">Ввод</button>
+        <!-- Кнопка для выхода -->
+        <button id="logout-button" class="hidden">Выйти с учётной записи</button>
+    </form>
+
+    <div class="response" id="response-container"></div>
+
+    <script>
+        const apiBase = "http://127.0.0.1:8000"; // Замените на ваш API
+
+        // Проверка залогинен ли пользователь
+        function checkLoginStatus() {
+            const userId = localStorage.getItem("userId");
+            if (userId) {
+                showAdviceForm(); // Если залогинен, показать форму вопросов
+                document.getElementById('logout-button').classList.remove('hidden'); // Показать кнопку выхода
+            } else {
+                showLoginForm(); // Если не залогинен, показать логин
+                document.getElementById('logout-button').classList.add('hidden'); // Скрыть кнопку выхода
+            }
+        }
+
+        // Показать форму регистрации
+        function showRegisterForm() {
+            hideAllForms();
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+
+        // Показать форму логина
+        function showLoginForm() {
+            hideAllForms();
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+
+        // Показать форму вопросов
+        function showAdviceForm() {
+            hideAllForms();
+            document.getElementById('advice-form').classList.remove('hidden');
+        }
+
+        // Скрыть все формы
+        function hideAllForms() {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('advice-form').classList.add('hidden');
+        }
+
+        // Регистрация
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                email: document.getElementById('register-email').value,
+                password: document.getElementById('register-password').value,
+                name: document.getElementById('register-name').value,
+                age: document.getElementById('register-age').value,
+                interests: document.getElementById('register-interests').value,
+                goals: document.getElementById('register-goals').value,
+            };
+            const res = await fetch(`${apiBase}/register`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert("Registration successful! Please log in.");
+                showLoginForm();
+            } else {
+                alert(result.detail || "Registration failed!");
+            }
+        });
+
+        // Авторизация
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value,
+            };
+            const res = await fetch(`${apiBase}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert("Успешно вошли!");
+                localStorage.setItem("userId", result.user_id); // Сохраняем user_id
+                showAdviceForm();
+            } else {
+                alert(result.detail || "Упс...Неудача!");
+            }
+        });
+
+        // Генерация совета
+        document.getElementById('advice-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = localStorage.getItem("userId");
+            const query = document.getElementById('query').value;
+            const data = { user_id: userId, query };
+            const res = await fetch(`${apiBase}/generate_advice`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+            const result = await res.json();
+            document.getElementById('response-container').textContent = result["Ответ"] || "Failed to get advice!";
+        });
+
+        // Выход
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem("userId"); //
+            checkLoginStatus(); //
+        });
+
+        // Переход на форму регистрации при клике
+        document.getElementById('go-to-register').addEventListener('click', () => {
+            showRegisterForm(); //
+        });
+
+        // Переход назад к регистрации
+        document.getElementById('go-to-back').addEventListener('click', () => {
+            checkLoginStatus(); //
+        });
+
+        // Проверка статуса при загрузке страницы
+        window.onload = checkLoginStatus;
+    </script>
+</body>
+</html>

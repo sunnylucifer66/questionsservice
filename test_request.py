@@ -7,20 +7,20 @@ def send_request(register=False, login=False, generate_advice=False):
 
     if register:
         url = "http://127.0.0.1:8000/register"
-        data = {"email": "dmitryxyilo@gmail.com",
-                "password": "dmitryxyilo123",
-                "name": "Dmitry Xyilo",
+        data = {"email": "dmitriy@gmail.com",
+                "password": "dmitriy123",
+                "name": "Dmitry Grishin",
                 "age": 4,
-                "interests": "программирование",
-                "goals": "изучение SQL Alchemy"}
+                "interests": "Программирование",
+                "goals": "Изучение SQL Alchemy"}
     if login:
         url = "http://127.0.0.1:8000/login"
-        data = {"email": "dmitryxyilo@gmail.com",
-                "password": "dmitryxyilo123"}
+        data = {"email": "dmitriy@gmail.com",
+                "password": "dmitriy123"}
     if generate_advice:
         url = "http://127.0.0.1:8000/generate_advice"
         data = {"user_id": 1,
-                "query": "Чат привет, расскажи мне анекдот)"}
+                "query": "Можешь рассказать что-то интересное?"}
 
     payload = data
     response = requests.post(url, headers=headers, data=json.dumps(payload))

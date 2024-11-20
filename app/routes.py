@@ -46,11 +46,20 @@ def generate_advice(request: AdviceRequest, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    prompt = f"Интересы пользователя: {user.interests}, Цели пользователя: {user.goals}. Вопрос: {request.query}"
+    prompt = (
+        f"Учитывая интересы ({user.interests}) и цели ({user.goals}) пользователя, "
+        f"ответь на вопрос {request.query}, если это имеет смысл. "
+        f"Если формулировка вопроса общая:"
+        f"ответь на вопрос не учитывая интересы ({user.interests}) и цели ({user.goals}) пользователя"
+
+    )
     client = Client()
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "system", "content":
+                    f"Ты — полезный и дружелюбный помощник, который отвечает на вопросы в зависимости от их содержания. "
+                    f""f"Если вопрос абстрактный - не привязывайся к интересам ({user.interests}) и целям ({user.goals}) пользователя."},
+                  {"role": "user", "content": prompt}]
     )
 
     advice = response.choices[0].message.content

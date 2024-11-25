@@ -2,40 +2,66 @@ import requests
 import json
 
 def send_request(register=False, login=False, generate_advice=False):
-
     headers = {"Content-Type": "application/json"}
+    token = None  # Изначально токен пустой
 
     if register:
         url = "http://127.0.0.1:8000/register"
-        data = {"email": "dmitriy@gmail.com",
-                "password": "dmitriy123",
-                "name": "Dmitry Grishin",
-                "age": 4,
-                "interests": "Программирование",
-                "goals": "Изучение SQL Alchemy"}
+        data = {
+            "email": "dmitriy@gmail.com",
+            "password": "dmitriy123",
+            "name": "Dmitry Grishin",
+            "age": 4,
+            "interests": "Программирование",
+            "goals": "Изучение SQL Alchemy"
+        }
+        print(f"Отправляем запрос на {url} с данными: {data}")
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            print(f"Код статуса: {response.status_code}")
+            print("JSON-ответ:", response.json())
+        except Exception as e:
+            print(f"Ошибка соединения: {e}")
+            return
+
     if login:
         url = "http://127.0.0.1:8000/login"
-        data = {"email": "dmitriy@gmail.com",
-                "password": "dmitriy123"}
-    if generate_advice:
-        url = "http://127.0.0.1:8000/generate_advice"
-        data = {"user_id": 1,
-                "query": "Можешь рассказать что-то интересное?"}
-
-    payload = data
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-
-    print(f"Status Code: {response.status_code}")
-
-    # Если статус 200, пробуем вывести ответ как JSON
-    if response.status_code == 200:
+        data = {
+            "email": "dmitriy@gmail.com",
+            "password": "dmitriy123"
+        }
+        print(f"Отправляем запрос на {url} с данными: {data}")
         try:
-            print(response.json())
-        except requests.exceptions.JSONDecodeError:
-            print("Response is not JSON, raw response text:")
-            print(response.text)
-    else:
-        print(f"Request failed with status code: {response.status_code}")
-        print("Response text:", response.text)
+            response = requests.post(url, headers=headers, json=data)
+            print(f"Код статуса: {response.status_code}")
+            print("JSON-ответ:", response.json())
+            # Получаем токен из ответа и сохраняем
+            if response.status_code == 200:
+                token = response.json().get("access_token")
+                print(f"Получен токен: {token}")
+        except Exception as e:
+            print(f"Ошибка соединения: {e}")
+            return
 
-send_request(generate_advice=True)
+    if generate_advice:
+        if not token:
+            print("Ошибка: Необходим токен для выполнения запроса")
+            return
+
+        url = "http://127.0.0.1:8000/generate_advice"
+        data = {
+            "user_id": 2,
+            "query": "Ты можешь рассказать про игру STALKER 2?"
+        }
+        headers["Authorization"] = f"Bearer {token}"  # Добавляем токен в заголовок
+        print(f"Отправляем запрос на {url} с данными: {data}")
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            print(f"Код статуса: {response.status_code}")
+            print("JSON-ответ:", response.json())
+        except Exception as e:
+            print(f"Ошибка соединения: {e}")
+            return
+
+# Пример вызова функции для генерации совета
+send_request(login=True)

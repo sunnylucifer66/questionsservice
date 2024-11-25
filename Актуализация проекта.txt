@@ -1,3 +1,0 @@
-Если метод generate_advice не срабатывает, следует актуализировать данные по ссылке:
-https://github.com/xtekky/gpt4free?tab=readme-ov-file#-getting-started
-
